@@ -3,426 +3,158 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SpeedTest by Brother_Editz05</title>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;500;700;900&display=swap" rel="stylesheet">
+    <title>SpeedTest | Brother_Editz05</title>
     <style>
-        /* --- CSS STYLES --- */
         :root {
-            --bg-color: #141526;
-            --card-bg: #1f213a;
-            --text-main: #ffffff;
-            --text-dim: #aeb4c0;
-            --cyan: #00ffff;
-            --purple: #bf00ff;
-            --gauge-bg: #2d3045;
+            --bg: #0b0c17;
+            --card: #161729;
+            --cyan: #00f2ff;
+            --purple: #bc00ff;
+            --text: #ffffff;
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        
         body {
-            font-family: 'Montserrat', sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-main);
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
+            margin: 0; background: var(--bg); color: var(--text);
+            font-family: 'Segoe UI', sans-serif; display: flex; flex-direction: column; height: 100vh;
         }
 
-        /* Navbar / Branding */
+        /* Header Branding */
         header {
-            padding: 20px 40px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+            padding: 20px 50px; display: flex; justify-content: space-between; align-items: center;
         }
 
         .logo {
-            font-size: 1.5rem;
-            font-weight: 900;
-            letter-spacing: 1px;
-            text-transform: uppercase;
-            background: linear-gradient(90deg, var(--cyan), var(--purple));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            font-size: 24px; font-weight: 800; letter-spacing: 2px;
+            background: linear-gradient(to right, var(--cyan), var(--purple));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
         }
 
-        /* Main Interface */
-        .container {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            position: relative;
+        /* Main UI */
+        .main-container {
+            flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
         }
 
-        /* Gauge Canvas */
-        .gauge-wrapper {
-            position: relative;
-            width: 350px;
-            height: 350px;
-            margin-bottom: 30px;
+        /* The Gauge (Ookla Style) */
+        .gauge-section {
+            position: relative; width: 320px; height: 320px;
+            border: 8px solid var(--card); border-radius: 50%;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            box-shadow: 0 0 50px rgba(0, 242, 255, 0.1);
+            background: radial-gradient(circle, #1a1b35 0%, #0b0c17 100%);
         }
 
-        canvas {
-            display: block;
-            width: 100%;
-            height: 100%;
+        .speed-val { font-size: 70px; font-weight: 800; line-height: 1; color: var(--text); }
+        .unit { color: #666; font-size: 18px; text-transform: uppercase; }
+
+        .go-btn {
+            position: absolute; width: 100%; height: 100%;
+            border-radius: 50%; border: 4px solid var(--cyan);
+            background: transparent; color: var(--cyan);
+            font-size: 30px; font-weight: bold; cursor: pointer;
+            transition: 0.3s; z-index: 10;
         }
 
-        /* Center Text inside Gauge */
-        .speed-display {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -45%);
-            text-align: center;
+        .go-btn:hover { background: rgba(0, 242, 255, 0.1); box-shadow: 0 0 30px var(--cyan); }
+
+        /* Stats Bar */
+        .stats-container {
+            margin-top: 50px; display: grid; grid-template-columns: repeat(3, 1fr);
+            width: 100%; max-width: 600px; gap: 20px;
         }
 
-        .speed-value {
-            font-size: 4.5rem;
-            font-weight: 700;
-            line-height: 1;
+        .stat-box {
+            background: var(--card); padding: 20px; border-radius: 15px; text-align: center;
+            border-bottom: 3px solid transparent;
         }
 
-        .speed-unit {
-            font-size: 1rem;
-            font-weight: 500;
-            color: var(--text-dim);
-            margin-top: 5px;
-        }
+        .stat-box.down { border-color: var(--cyan); }
+        .stat-box.up { border-color: var(--purple); }
 
-        /* Status Text (Connecting, etc.) */
-        .status-text {
-            position: absolute;
-            bottom: 20%;
-            width: 100%;
-            text-align: center;
-            font-size: 1rem;
-            color: var(--cyan);
-            letter-spacing: 2px;
-            text-transform: uppercase;
-        }
+        .label { font-size: 12px; color: #aaa; text-transform: uppercase; margin-bottom: 10px; }
+        .value { font-size: 24px; font-weight: bold; }
 
-        /* Start Button */
-        .start-btn {
-            width: 120px;
-            height: 120px;
-            border-radius: 50%;
-            background: transparent;
-            border: 2px solid var(--cyan);
-            color: var(--cyan);
-            font-size: 1.2rem;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-transform: uppercase;
-            box-shadow: 0 0 15px rgba(0, 255, 255, 0.2);
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            z-index: 10;
-        }
-
-        .start-btn:hover {
-            background: rgba(0, 255, 255, 0.1);
-            box-shadow: 0 0 30px rgba(0, 255, 255, 0.4);
-            transform: translate(-50%, -50%) scale(1.1);
-        }
-
-        /* Stats Grid */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 20px;
-            width: 90%;
-            max-width: 800px;
-            margin-top: 20px;
-        }
-
-        .stat-card {
-            background: transparent;
-            padding: 15px;
-            text-align: center;
-            border-top: 1px solid rgba(255,255,255,0.1);
-        }
-
-        .stat-label {
-            font-size: 0.8rem;
-            color: var(--text-dim);
-            text-transform: uppercase;
-            margin-bottom: 5px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 5px;
-        }
-        
-        .icon { width: 16px; height: 16px; display: inline-block; }
-        .icon-ping { background: white; mask: url('data:image/svg+xml;utf8,<svg viewBox="0 0 24 24" fill="currentColor"><path d="M2 12C2 17.52 6.48 22 12 22S22 17.52 22 12 17.52 2 12 2 2 6.48 2 12ZM12 4C16.42 4 20 7.58 20 12S16.42 20 12 20 4 16.42 4 12 7.58 4 12 4Z"/></svg>'); }
-        .icon-down { background: var(--cyan); }
-        .icon-up { background: var(--purple); }
-
-        .stat-value {
-            font-size: 1.8rem;
-            font-weight: 700;
-        }
-
-        .stat-value span { font-size: 0.9rem; font-weight: 400; color: var(--text-dim); }
-        .val-ping { color: #fff; }
-        .val-down { color: var(--cyan); }
-        .val-up { color: var(--purple); }
-
-        /* Server Info */
-        .server-info {
-            margin-top: 20px;
-            font-size: 0.9rem;
-            color: var(--text-dim);
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .server-icon { color: var(--text-main); }
-
-        /* Mobile Adjustments */
-        @media (max-width: 600px) {
-            .gauge-wrapper { width: 280px; height: 280px; }
-            .speed-value { font-size: 3rem; }
-            .stats-grid { grid-template-columns: 1fr; gap: 10px; }
-            .stat-card { border: none; display: flex; justify-content: space-between; align-items: center; padding: 5px 20px;}
-        }
+        /* Real Engine Hidden */
+        #engine { display: none; }
     </style>
 </head>
 <body>
 
     <header>
         <div class="logo">Brother_Editz05</div>
-        </header>
+        <div style="color: #444;">V1.0 PRO</div>
+    </header>
 
-    <div class="container">
-        
-        <div class="gauge-wrapper">
-            <canvas id="gaugeCanvas"></canvas>
-            
-            <div class="speed-display" id="speedDisplay" style="display: none;">
-                <div class="speed-value" id="currentSpeed">0.0</div>
-                <div class="speed-unit">Mbps</div>
+    <div class="main-container">
+        <div class="gauge-section">
+            <button class="go-btn" id="go-btn" onclick="startEngine()">GO</button>
+            <div id="ui-display" style="display:none; text-align: center;">
+                <div class="speed-val" id="big-speed">0</div>
+                <div class="unit" id="test-type">Download</div>
             </div>
-
-            <div class="status-text" id="statusText"></div>
-            
-            <button class="start-btn" id="startBtn" onclick="startTest()">GO</button>
         </div>
 
-        <div class="server-info">
-            <span class="server-icon">📍</span>
-            <span id="serverName">Detecting Server...</span>
-        </div>
-
-        <div class="stats-grid">
-            <div class="stat-card">
-                <div class="stat-label">Ping <span style="color:white">⇄</span></div>
-                <div class="stat-value val-ping" id="pingVal">- <span>ms</span></div>
+        <div class="stats-container">
+            <div class="stat-box">
+                <div class="label">Ping</div>
+                <div class="value" id="ping">-</div>
             </div>
-            <div class="stat-card">
-                <div class="stat-label" style="color: var(--cyan)">Download ↓</div>
-                <div class="stat-value val-down" id="downVal">- <span>Mbps</span></div>
+            <div class="stat-box down">
+                <div class="label">Download</div>
+                <div class="value" id="down">-</div>
             </div>
-            <div class="stat-card">
-                <div class="stat-label" style="color: var(--purple)">Upload ↑</div>
-                <div class="stat-value val-up" id="upVal">- <span>Mbps</span></div>
+            <div class="stat-box up">
+                <div class="label">Upload</div>
+                <div class="value" id="up">-</div>
             </div>
         </div>
     </div>
 
+    <iframe id="engine" src="https://openspeedtest.com/Get-widget.php"></iframe>
+
     <script>
-        /* --- JAVASCRIPT LOGIC --- */
-        
-        const canvas = document.getElementById('gaugeCanvas');
-        const ctx = canvas.getContext('2d');
-        const startBtn = document.getElementById('startBtn');
-        const speedDisplay = document.getElementById('speedDisplay');
-        const currentSpeedEl = document.getElementById('currentSpeed');
-        const statusText = document.getElementById('statusText');
-        const serverName = document.getElementById('serverName');
-
-        // Set Canvas Resolution
-        const size = 350;
-        canvas.width = size * 2; // Retina sharpness
-        canvas.height = size * 2;
-        canvas.style.width = size + 'px';
-        canvas.style.height = size + 'px';
-        ctx.scale(2, 2);
-
-        let currentProgress = 0; // 0 to 1
-        let targetProgress = 0;
-        let isTesting = false;
-        let mode = 'idle'; // idle, ping, download, upload
-
-        // Draw Gauge Function
-        function drawGauge(progress, color) {
-            ctx.clearRect(0, 0, size, size);
-            const centerX = size / 2;
-            const centerY = size / 2;
-            const radius = 140;
-            const startAngle = 0.75 * Math.PI;
-            const endAngle = 2.25 * Math.PI;
-
-            // Background Arc
-            ctx.beginPath();
-            ctx.arc(centerX, centerY, radius, startAngle, endAngle);
-            ctx.lineWidth = 15;
-            ctx.strokeStyle = '#2d3045';
-            ctx.lineCap = 'round';
-            ctx.stroke();
-
-            // Active Arc
-            const activeEnd = startAngle + (progress * (endAngle - startAngle));
-            ctx.beginPath();
-            ctx.arc(centerX, centerY, radius, startAngle, activeEnd);
-            ctx.lineWidth = 15;
-            ctx.strokeStyle = color;
-            ctx.lineCap = 'round';
-            ctx.shadowBlur = 20;
-            ctx.shadowColor = color;
-            ctx.stroke();
-            ctx.shadowBlur = 0; // Reset
-        }
-
-        // Animation Loop
-        function animate() {
-            // Smooth transition logic
-            if(Math.abs(targetProgress - currentProgress) > 0.001) {
-                currentProgress += (targetProgress - currentProgress) * 0.1;
-            }
-
-            let color = '#00ffff';
-            if (mode === 'upload') color = '#bf00ff';
+        function startEngine() {
+            // UI Switch
+            document.getElementById('go-btn').style.display = 'none';
+            document.getElementById('ui-display').style.display = 'block';
             
-            drawGauge(currentProgress, color);
-            requestAnimationFrame(animate);
-        }
+            // Post message to hidden iframe to start the real test
+            const engine = document.getElementById('engine').contentWindow;
+            engine.postMessage('start', '*');
 
-        animate(); // Start loop
+            // Listen for Real Speed Data from the Engine
+            window.addEventListener('message', function(e) {
+                if (e.data.speed !== undefined) {
+                    const s = e.data; // Speed data object
+                    
+                    // Update Ping
+                    if(s.ping) document.getElementById('ping').innerText = s.ping + " ms";
+                    
+                    // Update UI based on what's testing
+                    if(s.download) {
+                        document.getElementById('big-speed').innerText = s.download;
+                        document.getElementById('down').innerText = s.download + " Mbps";
+                        document.getElementById('test-type').innerText = "Download";
+                        document.getElementById('test-type').style.color = "#00f2ff";
+                    }
+                    
+                    if(s.upload) {
+                        document.getElementById('big-speed').innerText = s.upload;
+                        document.getElementById('up').innerText = s.upload + " Mbps";
+                        document.getElementById('test-type').innerText = "Upload";
+                        document.getElementById('test-type').style.color = "#bc00ff";
+                    }
 
-        // --- SPEED TEST LOGIC (Static Site Compatible) ---
-        
-        // 1. Fake Server Detection (Since we are static)
-        setTimeout(() => {
-            serverName.innerText = "Automatic Server (Global CDN)";
-        }, 1000);
-
-        async function startTest() {
-            if (isTesting) return;
-            isTesting = true;
-            
-            // UI Update
-            startBtn.style.display = 'none';
-            speedDisplay.style.display = 'block';
-            
-            // 1. PING TEST
-            mode = 'ping';
-            statusText.innerText = 'Connecting...';
-            const pingStart = Date.now();
-            try {
-                // Fetch a tiny file to check latency
-                await fetch('https://www.google.com/favicon.ico', { mode: 'no-cors', cache: 'no-store' });
-                const pingEnd = Date.now();
-                const ping = Math.floor((pingEnd - pingStart) / 1.5); // Estimate
-                document.getElementById('pingVal').innerHTML = ping + ' <span>ms</span>';
-            } catch (e) {
-                document.getElementById('pingVal').innerHTML = '24 <span>ms</span>'; // Fallback
-            }
-
-            // 2. DOWNLOAD TEST
-            mode = 'download';
-            statusText.innerText = 'Testing Download...';
-            statusText.style.color = '#00ffff';
-            
-            const imageAddr = "https://images.unsplash.com/photo-1542831371-29b0f74f9713?ixlib=rb-1.2.1&q=80&fm=jpg&crop=entropy&cs=tinysrgb&w=1080&fit=max&ixid=eyJhcHBfaWQiOjEyMDd9"; 
-            // Using a high-res image from Unsplash for download testing
-            
-            const startTime = Date.now();
-            const downloadSize = 5000000; // Approx 5MB bytes estimate for the logic
-            let downloadSpeed = 0;
-
-            // Simulate the ramp-up visually while "fetching"
-            let progressInterval = setInterval(() => {
-                // Generate slightly random but rising number
-                let simSpeed = (Math.random() * 50) + (currentProgress * 100); 
-                targetProgress = Math.min(simSpeed / 200, 1); // Max scale 200mbps
-                currentSpeedEl.innerText = simSpeed.toFixed(1);
-            }, 100);
-
-            try {
-                const response = await fetch(imageAddr + "&cache=" + Math.random());
-                const blob = await response.blob();
-                const endTime = Date.now();
-                const duration = (endTime - startTime) / 1000;
-                const bitsLoaded = blob.size * 8;
-                const speedBps = bitsLoaded / duration;
-                const speedMbps = (speedBps / (1024 * 1024)).toFixed(2);
-                
-                clearInterval(progressInterval);
-                targetProgress = 0;
-                document.getElementById('downVal').innerHTML = speedMbps + ' <span>Mbps</span>';
-                currentSpeedEl.innerText = speedMbps;
-                
-                await new Promise(r => setTimeout(r, 1000)); // Pause before upload
-
-            } catch (e) {
-                clearInterval(progressInterval);
-                currentSpeedEl.innerText = "Error";
-            }
-
-            // 3. UPLOAD TEST (Simulated for GitHub Pages)
-            // Note: True upload testing requires a backend server to accept the POST.
-            // We will simulate it based on Download ratio (usually 1:5 or 1:1) for visual completion.
-            
-            mode = 'upload';
-            statusText.innerText = 'Testing Upload...';
-            statusText.style.color = '#bf00ff';
-            targetProgress = 0;
-            currentProgress = 0;
-
-            let uploadSpeed = 0;
-            const finalDownload = parseFloat(document.getElementById('downVal').innerText);
-            
-            // Assume upload is roughly 40-80% of download for residential, or symmetric
-            const estimatedUpload = finalDownload * 0.6; 
-            
-            let uploadSteps = 0;
-            let uploadInterval = setInterval(() => {
-                uploadSteps++;
-                
-                // Curve logic
-                let simUp = (estimatedUpload * (uploadSteps/40)) + (Math.random() * 5);
-                if (simUp > estimatedUpload) simUp = estimatedUpload + (Math.random() * 2 - 1);
-                
-                targetProgress = Math.min(simUp / 200, 1);
-                currentSpeedEl.innerText = simUp.toFixed(1);
-
-                if (uploadSteps > 50) {
-                    clearInterval(uploadInterval);
-                    finishTest(simUp.toFixed(2));
+                    if(s.status === 'finished') {
+                        document.getElementById('test-type').innerText = "Complete";
+                        document.getElementById('test-type').style.color = "#fff";
+                        // Reset button for next time
+                        setTimeout(() => {
+                            document.getElementById('go-btn').style.display = 'block';
+                            document.getElementById('go-btn').innerText = 'RETRY';
+                        }, 3000);
+                    }
                 }
-            }, 100);
-        }
-
-        function finishTest(finalUpload) {
-            isTesting = false;
-            targetProgress = 0;
-            currentSpeedEl.innerText = finalUpload;
-            document.getElementById('upVal').innerHTML = finalUpload + ' <span>Mbps</span>';
-            
-            statusText.innerText = 'Test Complete';
-            statusText.style.color = '#fff';
-            startBtn.innerHTML = "AGAIN";
-            startBtn.style.display = 'block';
-            speedDisplay.style.display = 'none';
+            });
         }
     </script>
 </body>
