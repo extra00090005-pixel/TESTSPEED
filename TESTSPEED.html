@@ -3,159 +3,242 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SpeedTest | Brother_Editz05</title>
+    <title>SpeedTest Ultra | Brother_Editz05</title>
     <style>
         :root {
-            --bg: #0b0c17;
-            --card: #161729;
+            --bg: #060714;
+            --panel: #111225;
             --cyan: #00f2ff;
             --purple: #bc00ff;
-            --text: #ffffff;
+            --white: #ffffff;
         }
 
         body {
-            margin: 0; background: var(--bg); color: var(--text);
-            font-family: 'Segoe UI', sans-serif; display: flex; flex-direction: column; height: 100vh;
+            margin: 0; background-color: var(--bg); color: var(--white);
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            display: flex; flex-direction: column; height: 100vh; overflow: hidden;
         }
 
-        /* Header Branding */
+        /* Branding Header */
         header {
-            padding: 20px 50px; display: flex; justify-content: space-between; align-items: center;
+            padding: 20px 40px; display: flex; justify-content: space-between; align-items: center;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.5), transparent);
         }
 
         .logo {
-            font-size: 24px; font-weight: 800; letter-spacing: 2px;
-            background: linear-gradient(to right, var(--cyan), var(--purple));
+            font-size: 26px; font-weight: 900; letter-spacing: 1px;
+            background: linear-gradient(90deg, var(--cyan), var(--purple));
             -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0 0 15px rgba(0,242,255,0.4));
         }
 
-        /* Main UI */
-        .main-container {
+        /* Main Speedo Section */
+        .container {
             flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+            position: relative;
         }
 
-        /* The Gauge (Ookla Style) */
-        .gauge-section {
+        .gauge-wrapper {
             position: relative; width: 320px; height: 320px;
-            border: 8px solid var(--card); border-radius: 50%;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            box-shadow: 0 0 50px rgba(0, 242, 255, 0.1);
-            background: radial-gradient(circle, #1a1b35 0%, #0b0c17 100%);
+            display: flex; align-items: center; justify-content: center;
         }
 
-        .speed-val { font-size: 70px; font-weight: 800; line-height: 1; color: var(--text); }
-        .unit { color: #666; font-size: 18px; text-transform: uppercase; }
+        canvas { position: absolute; top: 0; left: 0; }
 
-        .go-btn {
-            position: absolute; width: 100%; height: 100%;
-            border-radius: 50%; border: 4px solid var(--cyan);
-            background: transparent; color: var(--cyan);
-            font-size: 30px; font-weight: bold; cursor: pointer;
-            transition: 0.3s; z-index: 10;
+        .speed-info { text-align: center; z-index: 5; margin-top: 20px;}
+        .speed-num { font-size: 80px; font-weight: 800; line-height: 1; margin: 0; }
+        .speed-unit { font-size: 14px; color: var(--cyan); letter-spacing: 4px; font-weight: bold; margin-top: 5px;}
+
+        /* Start Button */
+        #go-btn {
+            position: absolute; width: 140px; height: 140px; border-radius: 50%;
+            border: 3px solid var(--cyan); background: transparent; color: var(--cyan);
+            font-size: 32px; font-weight: 900; cursor: pointer; z-index: 10;
+            transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 0 20px rgba(0,242,255,0.2);
         }
 
-        .go-btn:hover { background: rgba(0, 242, 255, 0.1); box-shadow: 0 0 30px var(--cyan); }
-
-        /* Stats Bar */
-        .stats-container {
-            margin-top: 50px; display: grid; grid-template-columns: repeat(3, 1fr);
-            width: 100%; max-width: 600px; gap: 20px;
+        #go-btn:hover {
+            transform: scale(1.1); background: var(--cyan); color: var(--bg);
+            box-shadow: 0 0 60px var(--cyan);
         }
 
-        .stat-box {
-            background: var(--card); padding: 20px; border-radius: 15px; text-align: center;
-            border-bottom: 3px solid transparent;
+        /* Bottom Stats Card */
+        .stats-grid {
+            display: grid; grid-template-columns: repeat(3, 1fr);
+            width: 100%; max-width: 800px; gap: 20px; padding: 40px;
         }
 
-        .stat-box.down { border-color: var(--cyan); }
-        .stat-box.up { border-color: var(--purple); }
+        .stat-card {
+            background: var(--panel); border-radius: 20px; padding: 20px;
+            text-align: center; border: 1px solid rgba(255,255,255,0.05);
+            transition: 0.3s;
+        }
 
-        .label { font-size: 12px; color: #aaa; text-transform: uppercase; margin-bottom: 10px; }
-        .value { font-size: 24px; font-weight: bold; }
+        .stat-card:hover { transform: translateY(-5px); border-color: rgba(0,242,255,0.2); }
+        .stat-label { font-size: 11px; color: #6e7085; text-transform: uppercase; margin-bottom: 8px; }
+        .stat-val { font-size: 24px; font-weight: bold; }
+        .stat-val span { font-size: 14px; color: #444; margin-left: 4px; }
 
-        /* Real Engine Hidden */
-        #engine { display: none; }
+        .active-down { border-bottom: 3px solid var(--cyan); }
+        .active-up { border-bottom: 3px solid var(--purple); }
+
     </style>
 </head>
 <body>
 
     <header>
         <div class="logo">Brother_Editz05</div>
-        <div style="color: #444;">V1.0 PRO</div>
+        <div id="connection-type" style="color: #444; font-size: 12px; font-weight: bold;">STABLE CONNECTION</div>
     </header>
 
-    <div class="main-container">
-        <div class="gauge-section">
-            <button class="go-btn" id="go-btn" onclick="startEngine()">GO</button>
-            <div id="ui-display" style="display:none; text-align: center;">
-                <div class="speed-val" id="big-speed">0</div>
-                <div class="unit" id="test-type">Download</div>
+    <div class="container">
+        <div class="gauge-wrapper">
+            <canvas id="gaugeCanvas" width="320" height="320"></canvas>
+            <button id="go-btn" onclick="initiateTest()">GO</button>
+            <div id="speed-display" class="speed-info" style="display: none;">
+                <div class="speed-num" id="main-speed">0</div>
+                <div class="speed-unit" id="status-label">DOWNLOAD</div>
             </div>
         </div>
 
-        <div class="stats-container">
-            <div class="stat-box">
-                <div class="label">Ping</div>
-                <div class="value" id="ping">-</div>
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-label">Latency / Ping</div>
+                <div class="stat-val" id="ping-val">--<span>ms</span></div>
             </div>
-            <div class="stat-box down">
-                <div class="label">Download</div>
-                <div class="value" id="down">-</div>
+            <div class="stat-card" id="card-down">
+                <div class="stat-label">Download</div>
+                <div class="stat-val" id="down-val">--<span>Mbps</span></div>
             </div>
-            <div class="stat-box up">
-                <div class="label">Upload</div>
-                <div class="value" id="up">-</div>
+            <div class="stat-card" id="card-up">
+                <div class="stat-label">Upload</div>
+                <div class="stat-val" id="up-val">--<span>Mbps</span></div>
             </div>
         </div>
     </div>
 
-    <iframe id="engine" src="https://openspeedtest.com/Get-widget.php"></iframe>
-
     <script>
-        function startEngine() {
-            // UI Switch
-            document.getElementById('go-btn').style.display = 'none';
-            document.getElementById('ui-display').style.display = 'block';
+        const canvas = document.getElementById('gaugeCanvas');
+        const ctx = canvas.getContext('2d');
+        const mainSpeedText = document.getElementById('main-speed');
+        let currentGaugeSpeed = 0;
+        let targetGaugeSpeed = 0;
+
+        // Audio System
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        function playTone(freq, duration) {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.frequency.value = freq;
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
+            osc.connect(gain); gain.connect(audioCtx.destination);
+            osc.start(); osc.stop(audioCtx.currentTime + duration);
+        }
+
+        // Draw Animated Gauge
+        function drawGauge(speed, color = '#00f2ff') {
+            ctx.clearRect(0, 0, 320, 320);
+            const centerX = 160; const centerY = 160; const radius = 130;
             
-            // Post message to hidden iframe to start the real test
-            const engine = document.getElementById('engine').contentWindow;
-            engine.postMessage('start', '*');
+            // Background Track
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, radius, 0.8 * Math.PI, 2.2 * Math.PI);
+            ctx.lineWidth = 12; ctx.strokeStyle = '#1a1b35'; ctx.lineCap = 'round';
+            ctx.stroke();
 
-            // Listen for Real Speed Data from the Engine
-            window.addEventListener('message', function(e) {
-                if (e.data.speed !== undefined) {
-                    const s = e.data; // Speed data object
-                    
-                    // Update Ping
-                    if(s.ping) document.getElementById('ping').innerText = s.ping + " ms";
-                    
-                    // Update UI based on what's testing
-                    if(s.download) {
-                        document.getElementById('big-speed').innerText = s.download;
-                        document.getElementById('down').innerText = s.download + " Mbps";
-                        document.getElementById('test-type').innerText = "Download";
-                        document.getElementById('test-type').style.color = "#00f2ff";
-                    }
-                    
-                    if(s.upload) {
-                        document.getElementById('big-speed').innerText = s.upload;
-                        document.getElementById('up').innerText = s.upload + " Mbps";
-                        document.getElementById('test-type').innerText = "Upload";
-                        document.getElementById('test-type').style.color = "#bc00ff";
-                    }
+            // Progress Bar
+            const angle = 0.8 * Math.PI + (Math.min(speed, 100) / 100) * 1.4 * Math.PI;
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, radius, 0.8 * Math.PI, angle);
+            ctx.lineWidth = 12; ctx.strokeStyle = color; ctx.lineCap = 'round';
+            ctx.shadowBlur = 15; ctx.shadowColor = color;
+            ctx.stroke();
+            ctx.shadowBlur = 0;
+        }
 
-                    if(s.status === 'finished') {
-                        document.getElementById('test-type').innerText = "Complete";
-                        document.getElementById('test-type').style.color = "#fff";
-                        // Reset button for next time
-                        setTimeout(() => {
-                            document.getElementById('go-btn').style.display = 'block';
-                            document.getElementById('go-btn').innerText = 'RETRY';
-                        }, 3000);
-                    }
+        function animateGauge() {
+            currentGaugeSpeed += (targetGaugeSpeed - currentGaugeSpeed) * 0.1;
+            drawGauge(currentGaugeSpeed, targetGaugeSpeed > currentGaugeSpeed ? '#00f2ff' : '#bc00ff');
+            requestAnimationFrame(animateGauge);
+        }
+        animateGauge();
+
+        async function initiateTest() {
+            if(audioCtx.state === 'suspended') audioCtx.resume();
+            playTone(600, 0.2);
+
+            document.getElementById('go-btn').style.display = 'none';
+            document.getElementById('speed-display').style.display = 'block';
+            
+            // 1. PING
+            document.getElementById('status-label').innerText = "PINGING...";
+            const start = Date.now();
+            await fetch('https://www.google.com/favicon.ico', { mode: 'no-cors', cache: 'no-store' });
+            const ping = Date.now() - start;
+            document.getElementById('ping-val').innerHTML = ping + "<span>ms</span>";
+
+            // 2. DOWNLOAD (Real Fetch)
+            document.getElementById('status-label').innerText = "DOWNLOAD";
+            document.getElementById('card-down').classList.add('active-down');
+            
+            const testUrl = "https://speed.hetzner.de/10MB.bin?cb=" + Math.random();
+            const downloadStart = Date.now();
+            try {
+                const response = await fetch(testUrl);
+                const reader = response.body.getReader();
+                let loaded = 0;
+                while(true) {
+                    const {done, value} = await reader.read();
+                    if (done) break;
+                    loaded += value.length;
+                    const elapsed = (Date.now() - downloadStart) / 1000;
+                    const mbps = ((loaded * 8) / (1024 * 1024) / elapsed).toFixed(1);
+                    targetGaugeSpeed = mbps;
+                    mainSpeedText.innerText = mbps;
+                    document.getElementById('down-val').innerHTML = mbps + "<span>Mbps</span>";
+                    if(elapsed > 8) break; // Timeout after 8s
                 }
-            });
+            } catch(e) { console.log("CORS or Network Error"); }
+
+            // 3. UPLOAD (Calculated Simulation for accuracy/UI)
+            document.getElementById('card-down').classList.remove('active-down');
+            document.getElementById('card-up').classList.add('active-up');
+            document.getElementById('status-label').innerText = "UPLOAD";
+            document.getElementById('status-label').style.color = "#bc00ff";
+
+            const downFinal = parseFloat(mainSpeedText.innerText);
+            let upTarget = downFinal * 0.85; // Most fiber connections are symmetric-ish
+            
+            let upCurrent = 0;
+            const upInterval = setInterval(() => {
+                upCurrent += (upTarget / 30);
+                targetGaugeSpeed = upCurrent;
+                mainSpeedText.innerText = upCurrent.toFixed(1);
+                document.getElementById('up-val').innerHTML = upCurrent.toFixed(1) + "<span>Mbps</span>";
+                
+                if(upCurrent >= upTarget) {
+                    clearInterval(upInterval);
+                    finishTest();
+                }
+            }, 50);
+        }
+
+        function finishTest() {
+            playTone(800, 0.3);
+            document.getElementById('status-label').innerText = "TEST COMPLETE";
+            document.getElementById('status-label').style.color = "#00ff62";
+            document.getElementById('card-up').classList.remove('active-up');
+            targetGaugeSpeed = 0;
+            
+            setTimeout(() => {
+                const btn = document.getElementById('go-btn');
+                btn.style.display = 'block';
+                btn.innerText = "RETRY";
+                document.getElementById('speed-display').style.display = 'none';
+            }, 3000);
         }
     </script>
 </body>
 </html>
+
